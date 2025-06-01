@@ -39,8 +39,6 @@ AWS CodeCommit is a fully managed source control service that hosts Git reposito
 
 ## Codebuild 
 
-Absolutely! Here’s an **exam-ready, focused summary on AWS CodeBuild** — especially what you need to know for certifications and practical use.
-
 ---
 
 ## **AWS CodeBuild: Exam Cram**
@@ -1188,5 +1186,3 @@ These reorganized notes group related topics by AWS service, provide additional 
 
    * Identify patterns (e.g., cross-account IAM, KMS grants, least-privilege CFN roles).
    * Review AWS-ish “Why is Option X wrong?” explanations to understand the nuances.
-
-Good luck with your exam preparation!
