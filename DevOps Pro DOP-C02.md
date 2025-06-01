@@ -37,6 +37,183 @@ AWS CodeCommit is a fully managed source control service that hosts Git reposito
 
 ---
 
+## Codebuild 
+
+Absolutely! Here’s an **exam-ready, focused summary on AWS CodeBuild** — especially what you need to know for certifications and practical use.
+
+---
+
+## **AWS CodeBuild: Exam Cram**
+
+### **What is CodeBuild?**
+
+* **AWS CodeBuild** is a fully managed continuous integration (CI) service.
+* **Purpose:** Compiles source code, runs tests, and produces deployable software artifacts.
+
+---
+
+### **Key Concepts & Responsibilities**
+
+| Feature               | Description                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| **Build Environment** | The Docker image or environment where your code is built. Can be AWS-managed or custom.          |
+| **Buildspec File**    | `buildspec.yml` — a YAML file that defines build commands, phases, artifacts, and env variables. |
+| **Input Source**      | CodeBuild can pull code from S3, CodeCommit, GitHub, Bitbucket, etc.                             |
+| **Artifacts**         | Output files produced by your build, stored in S3.                                               |
+| **Logs**              | Stored in CloudWatch Logs (and optionally S3).                                                   |
+| **IAM Role**          | Grants CodeBuild permission to access resources (S3, CodeCommit, etc).                           |
+
+---
+
+### **The `buildspec.yml` File**
+
+Defines exactly what CodeBuild should do at each phase.
+
+**Typical Structure:**
+
+```yaml
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing dependencies
+      - npm install
+  pre_build:
+    commands:
+      - echo Running tests
+      - npm test
+  build:
+    commands:
+      - echo Build started on `date`
+      - npm run build
+  post_build:
+    commands:
+      - echo Build completed on `date`
+
+artifacts:
+  files:
+    - build/**/*
+
+env:
+  variables:
+    NODE_ENV: production
+```
+
+---
+
+#### **Phases Explained**
+
+* **install**: Install dependencies or set up the environment.
+* **pre\_build**: Pre-compile steps (testing, linting).
+* **build**: The main build process.
+* **post\_build**: Steps to run after build (cleanup, notifications, upload, etc.).
+
+---
+
+### **CodeBuild vs CodeDeploy vs CodePipeline**
+
+* **CodeBuild**: *Builds* and *tests* code (not for deployment).
+* **CodeDeploy**: *Deploys* built artifacts to EC2/Lambda/ECS/On-Prem.
+* **CodePipeline**: *Orchestrates* workflows, chaining together CodeBuild, CodeDeploy, etc.
+
+---
+
+### **Lifecycle Hooks (in CodeBuild)**
+
+Unlike CodeDeploy, **CodeBuild does not use AppSpec files or deployment lifecycle hooks.**
+Instead, it relies on the `phases` in the `buildspec.yml` to run scripts at each stage.
+
+---
+
+### **Exam Tips:**
+
+* **You must define `buildspec.yml`** or set build commands inline in the console.
+* **Artifacts** are output to S3 (must be defined in `buildspec.yml` or console).
+* **Environment variables** can be set in the file, in the console, or pulled from Parameter Store/Secrets Manager.
+* **Custom Docker images** can be used for specialized build environments.
+* **IAM permissions** are crucial for access to sources/artifacts/logs.
+* **Build Badge**: Can display status of latest build for open-source projects.
+
+---
+
+### **Summary Table**
+
+| CodeBuild Feature | Notes                                   |
+| ----------------- | --------------------------------------- |
+| `buildspec.yml`   | Defines the whole build workflow        |
+| Phases            | install, pre\_build, build, post\_build |
+| Artifacts         | Output files, go to S3                  |
+| Logs              | CloudWatch by default                   |
+| No AppSpec/Hook   | All steps are in buildspec, not AppSpec |
+
+---
+
+### **Example: Minimal buildspec.yml**
+
+```yaml
+version: 0.2
+phases:
+  build:
+    commands:
+      - echo "Compiling app..."
+artifacts:
+  files:
+    - '**/*'
+```
+
+---
+
+### **More elaborate: Building a docker image** 
+
+```
+version: 0.2
+
+env:
+  variables:
+    IMAGE_REPO_NAME: "codex-trader"
+    IMAGE_TAG: "codebuild-${CODEBUILD_BUILD_NUMBER}"
+    AWS_REGION: "eu-west-1"
+
+phases:
+  pre_build:
+    commands:
+      - echo "Hello world"
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - echo AWS_ACCOUNT_ID $AWS_ACCOUNT_ID
+      - echo AWS_REGION $AWS_REGION
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - IMAGE_TAG_WITH_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:${CODEBUILD_BUILD_NUMBER}"  
+  build:
+    commands:
+      - docker build -t $IMAGE_TAG_WITH_URI .
+
+  post_build:
+    commands:
+      - echo Pushing the Docker image to ECR...
+      - docker push $IMAGE_TAG_WITH_URI
+      - echo Writing image definitions file...
+      - printf '[{"name":"container-name","imageUri":"%s"}]' $IMAGE_TAG_WITH_URI > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+```
+
+
+**In summary:**
+
+* CodeBuild is *all about building* — you define every step in `buildspec.yml` (no AppSpec, no deployment hooks).
+* You’re responsible for managing dependencies, scripts, build artifacts, and logs using the YAML configuration.
+
+---
+
+Let me know if you want practice questions, common exam traps, or advanced use cases!
+
+
+
 ## CodeDeploy
 
 **Overview:**
