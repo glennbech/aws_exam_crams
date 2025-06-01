@@ -332,6 +332,8 @@ AWS CloudFormation (CFN) allows you to template and provision AWS resources in a
      * **DRIFTED (Non-compliant)** if there are differences.
    * AWS Config’s managed rule `cloudformation-stack-drift-detection-check` uses the CFN API `DetectStackDrift`. If throttled or unavailable, AWS Config marks the rule as NON\_COMPLIANT by default.
    * **Note:** CloudFormation does not support drift detection on [Custom Resources](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-resource.html#aws-resource-custom), so those resources are always skipped.
+   * Explicitly specify property values (even defaults) so CloudFormation can track drift accurately.
+   * AWS Config can start drift detection and invoke the `AWS-UpdateCloudFormationStack` runbook for remediation.
 
 3. **Custom Resources & Lambda Callbacks**
 
@@ -399,6 +401,15 @@ AWS Elastic Beanstalk (EB) abstracts away infrastructure management for web appl
    * **Rolling with Additional Batch:** Provision a new batch of instances, deploy there, then terminate the old batch, reducing downtime.
    * **Immutable:** Launch a parallel group of instances, validate health, then shift traffic. Lowest risk but doubles the capacity temporarily.
 
+4. **CLI Recommended Values & Configuration Precedence**
+
+   * The EB CLI sets some recommended values directly at the API level (e.g., default instance type).
+   * Settings precedence:
+     1. Settings applied directly to the environment (API).
+     2. Saved configurations.
+     3. Configuration files (.ebextensions).
+     4. Default values.
+
 **Suggested Reading:**
 
 * [AWS Elastic Beanstalk Developer Guide: .ebextensions](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ebextensions.html)
@@ -442,6 +453,10 @@ Amazon EC2 Auto Scaling maintains application availability by ensuring the corre
 
 * [Auto Scaling Lifecycle Hooks](https://docs.aws.amazon.com/autoscaling/ec2/userguide/lifecycle-hooks.html)
 * [Auto Scaling Rebalancing](https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-mixed-instances.html#as-group-rebalancing)
+
+### Scaling Policies and Custom Metrics
+
+* Target tracking scaling policies can use CloudWatch custom metrics. Ensure the metric exists and the Autoscaling service role can read it.
 
 ---
 
@@ -567,6 +582,7 @@ For serverless applications, AWS Serverless Application Model (SAM) simplifies C
 
    * Define functions, APIs, and permissions in a `template.yaml` using shorthand SAM syntax.
    * During `sam deploy`, SAM transforms into CloudFormation and provisions resources.
+   * SAM templates extend CloudFormation, so you can include non-serverless resources alongside functions.
 
 2. **Traffic Shifting with CodeDeploy:**
 
@@ -1126,6 +1142,14 @@ Amazon Inspector is an automated security assessment service for EC2 instances a
 **Suggested Reading:**
 
 * [Amazon Inspector User Guide](https://docs.aws.amazon.com/inspector/latest/userguide/inspector2.html)
+## Service Quotas & Notifications
+
+**Overview:** Service Quotas integrates with AWS Organizations. Enable trusted access to centrally manage quotas and set CloudWatch alarms to notify via SNS.
+
+* Enable trusted access for Service Quotas in Organizations.
+* Create CloudWatch alarms on quota metrics and subscribe an SNS topic.
+* [Using Service Quotas with CloudWatch](https://docs.aws.amazon.com/servicequotas/latest/userguide/configure-cloudwatch.html)
+
 
 ---
 
@@ -1164,6 +1188,9 @@ Amazon Inspector is an automated security assessment service for EC2 instances a
 
   * **Misconception:** “SSM Inventory can track resources without tags.”
   * **Clarification:** Inventory only reports installed software/config on managed instances. AWS Config is needed for resource configurations and tag compliance.
+
+* **CodeGuru Reviewer Limitations:**
+  * Analyzes code quality; it does not provide target tracking for custom metrics.
 
 ---
 
